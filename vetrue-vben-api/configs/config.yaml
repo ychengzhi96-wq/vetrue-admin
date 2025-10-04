@@ -1,5 +1,5 @@
 app:
-    name: gooze-cli
+    name: vetrue-cli
     env: debug
     addr: ":18168"
     timeout: 1
