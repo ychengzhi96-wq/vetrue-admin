@@ -3,7 +3,11 @@ app:
     env: debug
     addr: ":18168"
     timeout: 1
-    routerPrefix: /api/v1
+    routerPrefix: api
+    rateLimit:
+        enabled: true
+        rate: 100        # 每秒允许100个请求
+        capacity: 200    # 令牌桶容量200
 databases:
     - name: master
       driver: mysql

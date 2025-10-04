@@ -20,11 +20,18 @@ type Config struct {
 }
 
 type App struct {
-	Name         string `mapstructure:"name"`
-	Env          string `mapstructure:"env"`
-	Addr         string `mapstructure:"addr"`
-	Timeout      int    `mapstructure:"timeout"`
-	RouterPrefix string `mapstructure:"routerPrefix"`
+	Name         string          `mapstructure:"name"`
+	Env          string          `mapstructure:"env"`
+	Addr         string          `mapstructure:"addr"`
+	Timeout      int             `mapstructure:"timeout"`
+	RouterPrefix string          `mapstructure:"routerPrefix"`
+	RateLimit    RateLimitConfig `mapstructure:"rateLimit"`
+}
+
+type RateLimitConfig struct {
+	Enabled  bool `mapstructure:"enabled"`
+	Rate     int  `mapstructure:"rate"`     // 每秒请求数
+	Capacity int  `mapstructure:"capacity"` // 令牌桶容量
 }
 
 type DatabaseConfig struct {

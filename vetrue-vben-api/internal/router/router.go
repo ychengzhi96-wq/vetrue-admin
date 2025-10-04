@@ -17,32 +17,67 @@ func InitRouter() *gin.Engine {
 	const staticPath = "/static"
 	r.StaticFS(staticPath, http.Dir("./"+staticPath))
 
+	// 应用CORS中间件
 	r.Use(middleware.Cors())
 
-	// 公共路由组
-	publicGroup := r.Group("api/v1")
-	{
-		// 健康监测
-		publicGroup.GET("/health", func(c *gin.Context) {
-			c.JSON(http.StatusOK, "ok")
-		})
+	// 应用全局限流中间件
+	if config.AppConfig.App.RateLimit.Enabled {
+		r.Use(middleware.IPRateLimit(
+			config.AppConfig.App.RateLimit.Rate,
+			config.AppConfig.App.RateLimit.Capacity,
+		))
+	}
 
+	// 设置版本化路由
+	setupRoutes(r)
+
+	return r
+}
+
+// setupRoutes 设置所有版本的路由
+func setupRoutes(r *gin.Engine) {
+	// API 路由前缀
+	prefix := "api"
+	if config.AppConfig.App.RouterPrefix != "" {
+		prefix = config.AppConfig.App.RouterPrefix
+	}
+
+	// v1 版本路由
+	setupV1Routes(r, prefix)
+
+	// 未来可以添加 v2 版本
+	// setupV2Routes(r, prefix)
+}
+
+// setupV1Routes 设置 v1 版本路由
+func setupV1Routes(r *gin.Engine, prefix string) {
+	v1 := r.Group(prefix + "/v1")
+
+	// 健康检查(公共接口)
+	v1.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "ok",
+			"version": "v1",
+		})
+	})
+
+	// 公共路由组
+	publicGroup := v1.Group("")
+	{
 		InitSystemAuthPublicRouter(publicGroup)
 	}
 
 	// 需要认证的路由组
-	privateAuthGroup := r.Group("api/v1")
-	privateAuthGroup.Use(middleware.JWTAuth(), middleware.CasbinAuth())
+	privateGroup := v1.Group("")
+	privateGroup.Use(middleware.JWTAuth(), middleware.CasbinAuth())
 	{
-		InitApiAuthRouter(privateAuthGroup)
-		InitDictAuthRouter(privateAuthGroup)
-		InitMenuAuthRouter(privateAuthGroup)
-		InitRecordAuthRouter(privateAuthGroup)
-		InitRoleAuthRouter(privateAuthGroup)
-		InitUserAuthRouter(privateAuthGroup)
+		InitApiAuthRouter(privateGroup)
+		InitDictAuthRouter(privateGroup)
+		InitMenuAuthRouter(privateGroup)
+		InitRecordAuthRouter(privateGroup)
+		InitRoleAuthRouter(privateGroup)
+		InitUserAuthRouter(privateGroup)
 	}
-
-	return r
 }
 
 func setMode() {
