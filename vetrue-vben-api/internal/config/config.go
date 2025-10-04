@@ -17,6 +17,7 @@ type Config struct {
 	JWT       JWTConfig        `mapstructure:"jwt"`
 	Casbin    CasbinConfig     `mapstructure:"casbin"`
 	OSS       OSSConfig        `mapstructure:"oss"`
+	Telegram  TelegramConfig   `mapstructure:"telegram"`
 }
 
 type App struct {
@@ -88,6 +89,15 @@ type OSSConfig struct {
 	AccessKey  string `mapstructure:"accessKey"`
 	SecretKey  string `mapstructure:"secretKey"`
 	BucketName string `mapstructure:"bucketName"`
+}
+
+type TelegramConfig struct {
+	Enabled       bool   `mapstructure:"enabled"`
+	BotToken      string `mapstructure:"botToken"`
+	BotUsername   string `mapstructure:"botUsername"`
+	MiniAppURL    string `mapstructure:"miniAppUrl"`
+	SetGlobalMenu bool   `mapstructure:"setGlobalMenu"`
+	Debug         bool   `mapstructure:"debug"`
 }
 
 func InitConfig() error {

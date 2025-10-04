@@ -8,7 +8,9 @@
       "Bash(find:*)",
       "Bash(rm:*)",
       "Bash(tree:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(go get:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": [],
     "ask": []

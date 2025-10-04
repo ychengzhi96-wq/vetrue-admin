@@ -11,6 +11,7 @@ import (
 	"vetrue-vben-api/internal/config"
 	"vetrue-vben-api/internal/database"
 	"vetrue-vben-api/internal/router"
+	"vetrue-vben-api/internal/telegram"
 	"vetrue-vben-api/pkg/middleware"
 )
 
@@ -30,6 +31,11 @@ func main() {
 		log.Fatalf("初始化Casbin失败: %v", err)
 	}
 
+	// 初始化 Telegram Bot
+	if err := telegram.InitTelegram(); err != nil {
+		log.Printf("初始化 Telegram Bot 失败: %v (继续运行)", err)
+	}
+
 	// 初始化路由
 	r := router.InitRouter()
 
@@ -46,12 +52,17 @@ func main() {
 		WriteTimeout: time.Duration(config.AppConfig.App.Timeout) * time.Second,
 	}
 
-	// 优雅启动
+	// 优雅启动 HTTP 服务器
 	go func() {
 		log.Printf("服务器启动在: %s", addr)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("服务器启动失败: %v", err)
 		}
+	}()
+
+	// 启动 Telegram Bot（在独立的 goroutine 中）
+	go func() {
+		telegram.StartTelegram()
 	}()
 
 	// 优雅关闭
