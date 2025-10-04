@@ -1,10 +1,11 @@
 package router
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/soryetong/gooze-starter/pkg/gzmiddleware"
-	"github.com/spf13/viper"
+	"vetrue-vben-api/internal/config"
+	"vetrue-vben-api/pkg/middleware"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func InitRouter() *gin.Engine {
@@ -14,7 +15,7 @@ func InitRouter() *gin.Engine {
 	fs := "/static"
 	r.StaticFS(fs, http.Dir("./"+fs))
 
-	r.Use(gzmiddleware.Begin()).Use(gzmiddleware.Cross())
+	r.Use(middleware.Cors())
 	publicGroup := r.Group("api/v1")
 	{
 		// 健康监测
@@ -26,7 +27,7 @@ func InitRouter() *gin.Engine {
 	}
 
 	privateAuthGroup := r.Group("api/v1")
-	privateAuthGroup.Use(gzmiddleware.Jwt()).Use(gzmiddleware.Casbin())
+	privateAuthGroup.Use(middleware.JWTAuth()).Use(middleware.CasbinAuth())
 	{
 		InitApiAuthRouter(privateAuthGroup)
 		InitDictAuthRouter(privateAuthGroup)
@@ -40,10 +41,11 @@ func InitRouter() *gin.Engine {
 }
 
 func setMode() {
-	switch viper.GetString("App.Env") {
-	case gin.DebugMode:
+	env := config.AppConfig.App.Env
+	switch env {
+	case "debug":
 		gin.SetMode(gin.DebugMode)
-	case gin.ReleaseMode:
+	case "release":
 		gin.SetMode(gin.ReleaseMode)
 	default:
 		gin.SetMode(gin.TestMode)

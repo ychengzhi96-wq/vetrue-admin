@@ -7,13 +7,13 @@
 1. 拉取项目
 
     ```bash
-    git clone https://github.com/soryetong/gooze-vben.git
+    git clone git@github.com:ychengzhi96-wq/vetrue-admin.git
     ```
 
 2. 拉取依赖
 
     ```bash
-    cd gooze-vben-api
+    cd vetrue-vben-api
 
     go mod tidy
     ```

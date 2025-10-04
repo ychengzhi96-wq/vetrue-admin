@@ -1,11 +1,11 @@
 package handler
 
 import (
+	"vetrue-vben-api/internal/dto"
+	"vetrue-vben-api/internal/logic"
+	"vetrue-vben-api/pkg/response"
+
 	"github.com/gin-gonic/gin"
-	"github.com/soryetong/gooze-starter/gooze"
-	"github.com/soryetong/gooze-starter/pkg/gzerror"
-	"gooze-vben-api/internal/dto"
-	"gooze-vben-api/internal/logic"
 )
 
 var authLogic = logic.NewAuthLogic()
@@ -16,21 +16,21 @@ var authLogic = logic.NewAuthLogic()
 // @Produce json
 // @Param body dto.LoginReq
 // @Success 200 {object} dto.LoginResp
-// @Failure 200 {object} gooze.Response 根据Code表示不同类型的错误
+// @Failure 200 {object} response.Response
 // @Router /system/auth/login [post]
 func SystemAuthLogin(ctx *gin.Context) {
 	var req dto.LoginReq
 	if err := ctx.ShouldBind(&req); err != nil {
-		gooze.FailWithMessage(ctx, gzerror.Trans(err))
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
 
 	resp, err := authLogic.SystemAuthLogin(ctx, &req)
 	if err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, resp)
+	response.Success(ctx, resp)
 }
 
 // @Summary SystemAuthLogout
@@ -39,18 +39,18 @@ func SystemAuthLogin(ctx *gin.Context) {
 // @Produce json
 // @Param body dto.LogoutReq
 // @Success 200 string success
-// @Failure 200 {object} gooze.Response 根据Code表示不同类型的错误
+// @Failure 200 {object} response.Response
 // @Router /system/auth/logout [post]
 func SystemAuthLogout(ctx *gin.Context) {
 	var req dto.LogoutReq
 	if err := ctx.ShouldBind(&req); err != nil {
-		gooze.FailWithMessage(ctx, gzerror.Trans(err))
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
 
 	if err := authLogic.SystemAuthLogout(ctx, &req); err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, nil)
+	response.Success(ctx, nil)
 }

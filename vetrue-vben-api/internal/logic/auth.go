@@ -3,14 +3,12 @@ package logic
 import (
 	"context"
 	"errors"
-	"gooze-vben-api/internal/dto"
-	"gooze-vben-api/models"
-	"time"
-
-	"github.com/soryetong/gooze-starter/gooze"
-	"github.com/soryetong/gooze-starter/pkg/gzauth"
-	"github.com/soryetong/gooze-starter/pkg/gzutil"
-	"go.uber.org/zap"
+	"vetrue-vben-api/internal/database"
+	"vetrue-vben-api/internal/dto"
+	"vetrue-vben-api/models"
+	"vetrue-vben-api/pkg/jwt"
+	"vetrue-vben-api/pkg/utils"
+	"log"
 )
 
 type AuthLogic struct {
@@ -23,25 +21,24 @@ func NewAuthLogic() *AuthLogic {
 // @Summary SystemAuthLogin
 func (self *AuthLogic) SystemAuthLogin(ctx context.Context, params *dto.LoginReq) (resp *dto.LoginResp, err error) {
 	user := new(models.SysUsers)
-	if err = gooze.Gorm().Model(&models.SysUsers{}).Where("username = ?", params.Username).First(user).Error; err != nil {
+	if err = database.GetDB().Model(&models.SysUsers{}).Where("username = ?", params.Username).First(user).Error; err != nil {
 		return nil, errors.New("用户不存在")
 	}
 	if user.Status != models.SysUserStatusNormal {
 		return nil, errors.New("用户已被禁用")
 	}
 
-	if gzutil.ValidatePasswd(params.Password, user.Salt, user.Password) == false {
+	if !utils.ValidatePasswd(params.Password, user.Salt, user.Password) {
 		return nil, errors.New("密码错误")
 	}
 
-	token, err := gzauth.GenerateJwtToken(map[string]interface{}{
+	token, err := jwt.GenerateJwtToken(map[string]interface{}{
 		"id":       user.Id,
 		"username": user.Username,
 		"role_id":  user.RoleId,
-		"exp":      time.Now().Add(time.Minute * 20).Unix(),
 	})
 	if err != nil {
-		gooze.Log.Error("生成 token 失败", zap.Error(err))
+		log.Printf("生成 token 失败: %v", err)
 		return nil, errors.New("生成 token 失败")
 	}
 

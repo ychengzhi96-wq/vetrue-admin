@@ -2,7 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"gooze-vben-api/internal/handler"
+	"vetrue-vben-api/internal/handler"
 )
 
 func InitSystemAuthPublicRouter(routerGroup *gin.RouterGroup) {

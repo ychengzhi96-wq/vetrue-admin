@@ -2,12 +2,11 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/soryetong/gooze-starter/gooze"
-	"github.com/soryetong/gooze-starter/pkg/gzerror"
-	"github.com/soryetong/gooze-starter/pkg/gzutil"
 	"github.com/spf13/cast"
-	"gooze-vben-api/internal/dto"
-	"gooze-vben-api/internal/logic"
+	"vetrue-vben-api/internal/dto"
+	"vetrue-vben-api/internal/logic"
+	"vetrue-vben-api/pkg/response"
+	"vetrue-vben-api/pkg/utils"
 )
 
 var systemLogic = logic.NewSystemLogic()
@@ -23,15 +22,15 @@ var systemLogic = logic.NewSystemLogic()
 func ApiAdd(ctx *gin.Context) {
 	var req dto.UpsertApiReq
 	if err := ctx.ShouldBind(&req); err != nil {
-		gooze.FailWithMessage(ctx, gzerror.Trans(err))
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
 
 	if err := systemLogic.ApiAdd(ctx, &req); err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, nil)
+	response.Success(ctx, nil)
 }
 
 // @Summary ApiList
@@ -45,16 +44,16 @@ func ApiAdd(ctx *gin.Context) {
 func ApiList(ctx *gin.Context) {
 	var req dto.ApiListReq
 	if err := ctx.ShouldBind(&req); err != nil {
-		gooze.FailWithMessage(ctx, gzerror.Trans(err))
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
 
 	resp, err := systemLogic.ApiList(ctx, &req)
 	if err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, resp)
+	response.Success(ctx, resp)
 }
 
 // @Summary ApiUpdate
@@ -68,21 +67,21 @@ func ApiList(ctx *gin.Context) {
 // @Router /api/update/:id [put]
 func ApiUpdate(ctx *gin.Context) {
 	id := cast.ToInt64(ctx.Param("id"))
-	if !gzutil.IsValidNumber(id) {
-		gooze.FailWithMessage(ctx, "参数错误")
+	if !utils.IsValidNumber(id) {
+		response.FailWithMessage(ctx, "参数错误")
 		return
 	}
 	var req dto.UpsertApiReq
 	if err := ctx.ShouldBind(&req); err != nil {
-		gooze.FailWithMessage(ctx, gzerror.Trans(err))
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
 
 	if err := systemLogic.ApiUpdate(ctx, id, &req); err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, nil)
+	response.Success(ctx, nil)
 }
 
 // @Summary ApiDelete
@@ -95,15 +94,15 @@ func ApiUpdate(ctx *gin.Context) {
 // @Router /api/delete/:id [delete]
 func ApiDelete(ctx *gin.Context) {
 	id := cast.ToInt64(ctx.Param("id"))
-	if !gzutil.IsValidNumber(id) {
-		gooze.FailWithMessage(ctx, "参数错误")
+	if !utils.IsValidNumber(id) {
+		response.FailWithMessage(ctx, "参数错误")
 		return
 	}
 	if err := systemLogic.ApiDelete(ctx, id); err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, nil)
+	response.Success(ctx, nil)
 }
 
 // @Summary DictAdd
@@ -117,15 +116,15 @@ func ApiDelete(ctx *gin.Context) {
 func DictAdd(ctx *gin.Context) {
 	var req dto.UpsertDictReq
 	if err := ctx.ShouldBind(&req); err != nil {
-		gooze.FailWithMessage(ctx, gzerror.Trans(err))
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
 
 	if err := systemLogic.DictAdd(ctx, &req); err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, nil)
+	response.Success(ctx, nil)
 }
 
 // @Summary DictList
@@ -139,16 +138,16 @@ func DictAdd(ctx *gin.Context) {
 func DictList(ctx *gin.Context) {
 	var req dto.DictListReq
 	if err := ctx.ShouldBind(&req); err != nil {
-		gooze.FailWithMessage(ctx, gzerror.Trans(err))
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
 
 	resp, err := systemLogic.DictList(ctx, &req)
 	if err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, resp)
+	response.Success(ctx, resp)
 }
 
 // @Summary DictUpdate
@@ -162,21 +161,21 @@ func DictList(ctx *gin.Context) {
 // @Router /dict/update/:id [put]
 func DictUpdate(ctx *gin.Context) {
 	id := cast.ToInt64(ctx.Param("id"))
-	if !gzutil.IsValidNumber(id) {
-		gooze.FailWithMessage(ctx, "参数错误")
+	if !utils.IsValidNumber(id) {
+		response.FailWithMessage(ctx, "参数错误")
 		return
 	}
 	var req dto.UpsertDictReq
 	if err := ctx.ShouldBind(&req); err != nil {
-		gooze.FailWithMessage(ctx, gzerror.Trans(err))
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
 
 	if err := systemLogic.DictUpdate(ctx, id, &req); err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, nil)
+	response.Success(ctx, nil)
 }
 
 // @Summary DictDelete
@@ -189,15 +188,15 @@ func DictUpdate(ctx *gin.Context) {
 // @Router /dict/delete/:id [delete]
 func DictDelete(ctx *gin.Context) {
 	id := cast.ToInt64(ctx.Param("id"))
-	if !gzutil.IsValidNumber(id) {
-		gooze.FailWithMessage(ctx, "参数错误")
+	if !utils.IsValidNumber(id) {
+		response.FailWithMessage(ctx, "参数错误")
 		return
 	}
 	if err := systemLogic.DictDelete(ctx, id); err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, nil)
+	response.Success(ctx, nil)
 }
 
 // @Summary MenuRouter
@@ -210,10 +209,10 @@ func DictDelete(ctx *gin.Context) {
 func MenuRouter(ctx *gin.Context) {
 	resp, err := systemLogic.MenuRouter(ctx)
 	if err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, resp)
+	response.Success(ctx, resp)
 }
 
 // @Summary MenuTree
@@ -227,16 +226,16 @@ func MenuRouter(ctx *gin.Context) {
 func MenuTree(ctx *gin.Context) {
 	var req dto.MenuTreeReq
 	if err := ctx.ShouldBind(&req); err != nil {
-		gooze.FailWithMessage(ctx, gzerror.Trans(err))
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
 
 	resp, err := systemLogic.MenuTree(ctx, &req)
 	if err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, resp)
+	response.Success(ctx, resp)
 }
 
 // @Summary MenuAdd
@@ -250,15 +249,15 @@ func MenuTree(ctx *gin.Context) {
 func MenuAdd(ctx *gin.Context) {
 	var req dto.MenuInfo
 	if err := ctx.ShouldBind(&req); err != nil {
-		gooze.FailWithMessage(ctx, gzerror.Trans(err))
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
 
 	if err := systemLogic.MenuAdd(ctx, &req); err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, nil)
+	response.Success(ctx, nil)
 }
 
 // @Summary MenuUpdate
@@ -272,21 +271,21 @@ func MenuAdd(ctx *gin.Context) {
 // @Router /menu/update/:id [put]
 func MenuUpdate(ctx *gin.Context) {
 	id := cast.ToInt64(ctx.Param("id"))
-	if !gzutil.IsValidNumber(id) {
-		gooze.FailWithMessage(ctx, "参数错误")
+	if !utils.IsValidNumber(id) {
+		response.FailWithMessage(ctx, "参数错误")
 		return
 	}
 	var req dto.MenuInfo
 	if err := ctx.ShouldBind(&req); err != nil {
-		gooze.FailWithMessage(ctx, gzerror.Trans(err))
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
 
 	if err := systemLogic.MenuUpdate(ctx, id, &req); err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, nil)
+	response.Success(ctx, nil)
 }
 
 // @Summary MenuInfo
@@ -299,16 +298,16 @@ func MenuUpdate(ctx *gin.Context) {
 // @Router /menu/info/:id [get]
 func MenuInfo(ctx *gin.Context) {
 	id := cast.ToInt64(ctx.Param("id"))
-	if !gzutil.IsValidNumber(id) {
-		gooze.FailWithMessage(ctx, "参数错误")
+	if !utils.IsValidNumber(id) {
+		response.FailWithMessage(ctx, "参数错误")
 		return
 	}
 	resp, err := systemLogic.MenuInfo(ctx, id)
 	if err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, resp)
+	response.Success(ctx, resp)
 }
 
 // @Summary MenuDelete
@@ -321,15 +320,15 @@ func MenuInfo(ctx *gin.Context) {
 // @Router /menu/delete/:id [delete]
 func MenuDelete(ctx *gin.Context) {
 	id := cast.ToInt64(ctx.Param("id"))
-	if !gzutil.IsValidNumber(id) {
-		gooze.FailWithMessage(ctx, "参数错误")
+	if !utils.IsValidNumber(id) {
+		response.FailWithMessage(ctx, "参数错误")
 		return
 	}
 	if err := systemLogic.MenuDelete(ctx, id); err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, nil)
+	response.Success(ctx, nil)
 }
 
 // @Summary RecordList
@@ -343,16 +342,16 @@ func MenuDelete(ctx *gin.Context) {
 func RecordList(ctx *gin.Context) {
 	var req dto.RecordListReq
 	if err := ctx.ShouldBind(&req); err != nil {
-		gooze.FailWithMessage(ctx, gzerror.Trans(err))
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
 
 	resp, err := systemLogic.RecordList(ctx, &req)
 	if err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, resp)
+	response.Success(ctx, resp)
 }
 
 // @Summary RecordDelete
@@ -365,15 +364,15 @@ func RecordList(ctx *gin.Context) {
 // @Router /record/delete/:id [delete]
 func RecordDelete(ctx *gin.Context) {
 	id := cast.ToInt64(ctx.Param("id"))
-	if !gzutil.IsValidNumber(id) {
-		gooze.FailWithMessage(ctx, "参数错误")
+	if !utils.IsValidNumber(id) {
+		response.FailWithMessage(ctx, "参数错误")
 		return
 	}
 	if err := systemLogic.RecordDelete(ctx, id); err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, nil)
+	response.Success(ctx, nil)
 }
 
 // @Summary RoleAdd
@@ -387,15 +386,15 @@ func RecordDelete(ctx *gin.Context) {
 func RoleAdd(ctx *gin.Context) {
 	var req dto.UpsertRoleReq
 	if err := ctx.ShouldBind(&req); err != nil {
-		gooze.FailWithMessage(ctx, gzerror.Trans(err))
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
 
 	if err := systemLogic.RoleAdd(ctx, &req); err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, nil)
+	response.Success(ctx, nil)
 }
 
 // @Summary RoleList
@@ -409,16 +408,16 @@ func RoleAdd(ctx *gin.Context) {
 func RoleList(ctx *gin.Context) {
 	var req dto.RoleListReq
 	if err := ctx.ShouldBind(&req); err != nil {
-		gooze.FailWithMessage(ctx, gzerror.Trans(err))
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
 
 	resp, err := systemLogic.RoleList(ctx, &req)
 	if err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, resp)
+	response.Success(ctx, resp)
 }
 
 // @Summary RoleInfo
@@ -431,16 +430,16 @@ func RoleList(ctx *gin.Context) {
 // @Router /role/info/:id [get]
 func RoleInfo(ctx *gin.Context) {
 	id := cast.ToInt64(ctx.Param("id"))
-	if !gzutil.IsValidNumber(id) {
-		gooze.FailWithMessage(ctx, "参数错误")
+	if !utils.IsValidNumber(id) {
+		response.FailWithMessage(ctx, "参数错误")
 		return
 	}
 	resp, err := systemLogic.RoleInfo(ctx, id)
 	if err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, resp)
+	response.Success(ctx, resp)
 }
 
 // @Summary RoleUpdate
@@ -454,21 +453,21 @@ func RoleInfo(ctx *gin.Context) {
 // @Router /role/update/:id [put]
 func RoleUpdate(ctx *gin.Context) {
 	id := cast.ToInt64(ctx.Param("id"))
-	if !gzutil.IsValidNumber(id) {
-		gooze.FailWithMessage(ctx, "参数错误")
+	if !utils.IsValidNumber(id) {
+		response.FailWithMessage(ctx, "参数错误")
 		return
 	}
 	var req dto.UpsertRoleReq
 	if err := ctx.ShouldBind(&req); err != nil {
-		gooze.FailWithMessage(ctx, gzerror.Trans(err))
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
 
 	if err := systemLogic.RoleUpdate(ctx, id, &req); err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, nil)
+	response.Success(ctx, nil)
 }
 
 // @Summary RoleAssign
@@ -482,21 +481,21 @@ func RoleUpdate(ctx *gin.Context) {
 // @Router /role/assign/:id [put]
 func RoleAssign(ctx *gin.Context) {
 	id := cast.ToInt64(ctx.Param("id"))
-	if !gzutil.IsValidNumber(id) {
-		gooze.FailWithMessage(ctx, "参数错误")
+	if !utils.IsValidNumber(id) {
+		response.FailWithMessage(ctx, "参数错误")
 		return
 	}
 	var req dto.AssignRoleReq
 	if err := ctx.ShouldBind(&req); err != nil {
-		gooze.FailWithMessage(ctx, gzerror.Trans(err))
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
 
 	if err := systemLogic.RoleAssign(ctx, id, &req); err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, nil)
+	response.Success(ctx, nil)
 }
 
 // @Summary RoleDelete
@@ -509,15 +508,15 @@ func RoleAssign(ctx *gin.Context) {
 // @Router /role/delete/:id [delete]
 func RoleDelete(ctx *gin.Context) {
 	id := cast.ToInt64(ctx.Param("id"))
-	if !gzutil.IsValidNumber(id) {
-		gooze.FailWithMessage(ctx, "参数错误")
+	if !utils.IsValidNumber(id) {
+		response.FailWithMessage(ctx, "参数错误")
 		return
 	}
 	if err := systemLogic.RoleDelete(ctx, id); err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, nil)
+	response.Success(ctx, nil)
 }
 
 // @Summary UserInfo
@@ -530,10 +529,10 @@ func RoleDelete(ctx *gin.Context) {
 func UserInfo(ctx *gin.Context) {
 	resp, err := systemLogic.UserInfo(ctx)
 	if err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, resp)
+	response.Success(ctx, resp)
 }
 
 // @Summary UserAdd
@@ -547,15 +546,15 @@ func UserInfo(ctx *gin.Context) {
 func UserAdd(ctx *gin.Context) {
 	var req dto.UpsertUserReq
 	if err := ctx.ShouldBind(&req); err != nil {
-		gooze.FailWithMessage(ctx, gzerror.Trans(err))
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
 
 	if err := systemLogic.UserAdd(ctx, &req); err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, nil)
+	response.Success(ctx, nil)
 }
 
 // @Summary UserList
@@ -569,16 +568,16 @@ func UserAdd(ctx *gin.Context) {
 func UserList(ctx *gin.Context) {
 	var req dto.UserListReq
 	if err := ctx.ShouldBind(&req); err != nil {
-		gooze.FailWithMessage(ctx, gzerror.Trans(err))
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
 
 	resp, err := systemLogic.UserList(ctx, &req)
 	if err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, resp)
+	response.Success(ctx, resp)
 }
 
 // @Summary UserUpdate
@@ -592,21 +591,21 @@ func UserList(ctx *gin.Context) {
 // @Router /user/update/:id [put]
 func UserUpdate(ctx *gin.Context) {
 	id := cast.ToInt64(ctx.Param("id"))
-	if !gzutil.IsValidNumber(id) {
-		gooze.FailWithMessage(ctx, "参数错误")
+	if !utils.IsValidNumber(id) {
+		response.FailWithMessage(ctx, "参数错误")
 		return
 	}
 	var req dto.UpsertUserReq
 	if err := ctx.ShouldBind(&req); err != nil {
-		gooze.FailWithMessage(ctx, gzerror.Trans(err))
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
 
 	if err := systemLogic.UserUpdate(ctx, id, &req); err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, nil)
+	response.Success(ctx, nil)
 }
 
 // @Summary UserDelete
@@ -619,13 +618,13 @@ func UserUpdate(ctx *gin.Context) {
 // @Router /user/delete/:id [delete]
 func UserDelete(ctx *gin.Context) {
 	id := cast.ToInt64(ctx.Param("id"))
-	if !gzutil.IsValidNumber(id) {
-		gooze.FailWithMessage(ctx, "参数错误")
+	if !utils.IsValidNumber(id) {
+		response.FailWithMessage(ctx, "参数错误")
 		return
 	}
 	if err := systemLogic.UserDelete(ctx, id); err != nil {
-		gooze.FailWithMessage(ctx, err.Error())
+		response.FailWithMessage(ctx, err.Error())
 		return
 	}
-	gooze.Success(ctx, nil)
+	response.Success(ctx, nil)
 }

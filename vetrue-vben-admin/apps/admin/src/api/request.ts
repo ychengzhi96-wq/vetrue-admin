@@ -106,7 +106,7 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
         position: POSITION.TOP_CENTER,
       });
 
-      if (code == 1007) {
+      if (code == 401) {
         setTimeout(() => {
           doReAuthenticate();
         }, 1000);

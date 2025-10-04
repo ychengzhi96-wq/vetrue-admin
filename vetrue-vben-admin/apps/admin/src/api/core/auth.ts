@@ -9,6 +9,11 @@ export namespace AuthApi {
 
   /** 登录接口返回值 */
   export interface LoginResult {
+    id: number;
+    password: string;
+    realName: string;
+    roles: string[];
+    username: string;
     accessToken: string;
   }
 

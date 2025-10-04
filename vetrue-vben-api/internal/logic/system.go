@@ -4,17 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gooze-vben-api/internal/dto"
-	"gooze-vben-api/models"
+	"vetrue-vben-api/internal/database"
+	"vetrue-vben-api/internal/dto"
+	"vetrue-vben-api/models"
+	"vetrue-vben-api/pkg/middleware"
+	"vetrue-vben-api/pkg/utils"
+	"log"
 
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/jinzhu/copier"
-	"github.com/soryetong/gooze-starter/gooze"
-	"github.com/soryetong/gooze-starter/pkg/gzauth"
-	"github.com/soryetong/gooze-starter/pkg/gzdb"
-	"github.com/soryetong/gooze-starter/pkg/gzutil"
-	"github.com/soryetong/gooze-starter/services/gzpermission"
-	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -31,12 +29,12 @@ func NewSystemLogic() *SystemLogic {
 // @Summary ApiAdd
 func (self *SystemLogic) ApiAdd(ctx context.Context, params *dto.UpsertApiReq) (err error) {
 	var has int64
-	gooze.Gorm().Model(&models.SysApis{}).Where("parent_id != ?", 0).Where("path = ?", params.Path).Count(&has)
+	database.GetDB().Model(&models.SysApis{}).Where("parent_id != ?", 0).Where("path = ?", params.Path).Count(&has)
 	if has > 0 {
 		return fmt.Errorf("API已存在！")
 	}
 
-	err = gooze.Gorm().Create(&models.SysApis{
+	err = database.GetDB().Create(&models.SysApis{
 		ParentId:    params.ParentId,
 		Description: params.Description,
 		Method:      params.Method,
@@ -49,7 +47,7 @@ func (self *SystemLogic) ApiAdd(ctx context.Context, params *dto.UpsertApiReq) (
 // @Summary ApiList
 func (self *SystemLogic) ApiList(ctx context.Context, params *dto.ApiListReq) (resp *dto.ApiListResp, err error) {
 	resp = &dto.ApiListResp{}
-	query := gooze.Gorm().Model(&models.SysApis{})
+	query := database.GetDB().Model(&models.SysApis{})
 	if params.Description != "" {
 		query.Where("description like ?", params.Description+"%")
 	}
@@ -91,12 +89,12 @@ func (self *SystemLogic) ApiList(ctx context.Context, params *dto.ApiListReq) (r
 // @Summary ApiUpdate
 func (self *SystemLogic) ApiUpdate(ctx context.Context, id int64, params *dto.UpsertApiReq) (err error) {
 	var has int64
-	gooze.Gorm().Model(&models.SysApis{}).Where("parent_id != ?", 0).Where("path = ?", params.Path).Count(&has)
+	database.GetDB().Model(&models.SysApis{}).Where("parent_id != ?", 0).Where("path = ?", params.Path).Count(&has)
 	if has > 0 {
 		return fmt.Errorf("API已存在！")
 	}
 
-	err = gooze.Gorm().Model(&models.SysApis{}).Where("id = ?", id).
+	err = database.GetDB().Model(&models.SysApis{}).Where("id = ?", id).
 		Updates(map[string]interface{}{
 			"parent_id":   params.ParentId,
 			"description": params.Description,
@@ -110,20 +108,20 @@ func (self *SystemLogic) ApiUpdate(ctx context.Context, id int64, params *dto.Up
 // @Summary ApiDelete
 func (self *SystemLogic) ApiDelete(ctx context.Context, id int64) (err error) {
 	var count int64
-	gooze.Gorm().Where("api_id", id).Model(&models.SysRoleApis{}).Count(&count)
+	database.GetDB().Where("api_id", id).Model(&models.SysRoleApis{}).Count(&count)
 	if count > 0 {
 		return fmt.Errorf("请先删除角色API权限后再操作")
 	}
 
-	err = gooze.Gorm().Delete(&models.SysApis{}, "id = ?", id).Error
+	err = database.GetDB().Delete(&models.SysApis{}, "id = ?", id).Error
 
 	return
 }
 
 func (self *SystemLogic) CacheApiInfo() {
 	var list []*models.SysApis
-	if err := gooze.Gorm().Model(&models.SysApis{}).Find(&list).Error; err != nil {
-		gooze.Log.Error("[CacheApiInfo]获取API信息失败！", zap.Error(err))
+	if err := database.GetDB().Model(&models.SysApis{}).Find(&list).Error; err != nil {
+		log.Printf("[CacheApiInfo]获取API信息失败！ error: %v", err)
 		return
 	}
 
@@ -146,7 +144,7 @@ func (self *SystemLogic) GetRecordDescription(path, method string) string {
 func (self *SystemLogic) DictAdd(ctx context.Context, params *dto.UpsertDictReq) (err error) {
 	data := new(models.SysDicts)
 	_ = copier.Copy(data, params)
-	err = gooze.Gorm().Model(&models.SysDicts{}).Create(data).Error
+	err = database.GetDB().Model(&models.SysDicts{}).Create(data).Error
 
 	return
 }
@@ -155,7 +153,7 @@ func (self *SystemLogic) DictAdd(ctx context.Context, params *dto.UpsertDictReq)
 func (self *SystemLogic) DictList(ctx context.Context, params *dto.DictListReq) (resp *dto.DictListResp, err error) {
 	resp = &dto.DictListResp{}
 
-	query := gooze.Gorm().Model(&models.SysDicts{}).Order("id desc")
+	query := database.GetDB().Model(&models.SysDicts{}).Order("id desc")
 	if params.DictName != "" {
 		query.Where("dict_name like ?", params.DictName+"%")
 	}
@@ -170,7 +168,7 @@ func (self *SystemLogic) DictList(ctx context.Context, params *dto.DictListReq) 
 	}
 
 	var list []*models.SysDicts
-	if err = query.Scopes(gzdb.GormPaginate(params.Page, params.PageSize)).Find(&list).Error; err != nil {
+	if err = query.Scopes(utils.GormPaginate(params.Page, params.PageSize)).Find(&list).Error; err != nil {
 		return
 	}
 
@@ -188,7 +186,7 @@ func (self *SystemLogic) DictList(ctx context.Context, params *dto.DictListReq) 
 
 // @Summary DictUpdate
 func (self *SystemLogic) DictUpdate(ctx context.Context, id int64, params *dto.UpsertDictReq) (err error) {
-	err = gooze.Gorm().Model(&models.SysDicts{}).Where("id = ?", id).
+	err = database.GetDB().Model(&models.SysDicts{}).Where("id = ?", id).
 		Updates(map[string]interface{}{
 			"dict_name":  params.DictName,
 			"dict_type":  params.DictType,
@@ -204,7 +202,7 @@ func (self *SystemLogic) DictUpdate(ctx context.Context, id int64, params *dto.U
 
 // @Summary DictDelete
 func (self *SystemLogic) DictDelete(ctx context.Context, id int64) (err error) {
-	err = gooze.Gorm().Delete(&models.SysDicts{}, "id = ?", id).Error
+	err = database.GetDB().Delete(&models.SysDicts{}, "id = ?", id).Error
 
 	return
 }
@@ -212,17 +210,17 @@ func (self *SystemLogic) DictDelete(ctx context.Context, id int64) (err error) {
 // @Summary MenuRouter
 func (self *SystemLogic) MenuRouter(ctx context.Context) (resp *dto.MenuResp, err error) {
 	var authIds []int64
-	gooze.Gorm().Table("sys_users").
+	database.GetDB().Table("sys_users").
 		Select("sys_role_auths.auth_id").
 		Joins("JOIN sys_role_auths ON sys_users.role_id = sys_role_auths.role_id").
-		Where("sys_users.id = ?", gzauth.GetTokenValue[int64](ctx, "id")).
+		Where("sys_users.id = ?", ctx.Value("userId")).
 		Pluck("sys_role_auths.auth_id", &authIds)
 	if len(authIds) == 0 {
 		return
 	}
 
 	var list []*models.SysMenus
-	if err = gooze.Gorm().Model(&models.SysMenus{}).
+	if err = database.GetDB().Model(&models.SysMenus{}).
 		Where("status = ?", 1).
 		Where("id IN ?", authIds).
 		Where("type != ?", "BUTTON").
@@ -265,7 +263,7 @@ func (self *SystemLogic) getMenuRouter(menuList []*models.SysMenus, pid int64) (
 
 // @Summary MenuTree
 func (self *SystemLogic) MenuTree(ctx context.Context, params *dto.MenuTreeReq) (resp *dto.MenuResp, err error) {
-	query := gooze.Gorm().Model(&models.SysMenus{})
+	query := database.GetDB().Model(&models.SysMenus{})
 	if params.Name != "" {
 		query.Where("name like ?", params.Name+"%")
 	}
@@ -297,14 +295,14 @@ func (self *SystemLogic) MenuAdd(ctx context.Context, params *dto.MenuInfo) (err
 	data := new(models.SysMenus)
 	_ = copier.Copy(data, params)
 	_ = copier.Copy(data, params.Meta)
-	err = gooze.Gorm().Model(&models.SysMenus{}).Create(data).Error
+	err = database.GetDB().Model(&models.SysMenus{}).Create(data).Error
 
 	return
 }
 
 // @Summary MenuUpdate
 func (self *SystemLogic) MenuUpdate(ctx context.Context, id int64, params *dto.MenuInfo) (err error) {
-	err = gooze.Gorm().Model(&models.SysMenus{}).Where("id = ?", id).
+	err = database.GetDB().Model(&models.SysMenus{}).Where("id = ?", id).
 		Updates(map[string]interface{}{
 			"parent_id":             params.ParentId,
 			"path":                  params.Path,
@@ -337,11 +335,11 @@ func (self *SystemLogic) MenuInfo(ctx context.Context, id int64) (resp *dto.Menu
 // @Summary MenuDelete
 func (self *SystemLogic) MenuDelete(ctx context.Context, id int64) (err error) {
 	var count int64
-	gooze.Gorm().Model(&models.SysRoleAuths{}).Where("auth_id", id).Count(&count)
+	database.GetDB().Model(&models.SysRoleAuths{}).Where("auth_id", id).Count(&count)
 	if count > 0 {
 		return fmt.Errorf("请删除角色菜单权限！")
 	}
-	err = gooze.Gorm().Delete(&models.SysMenus{}, "id = ?", id).Error
+	err = database.GetDB().Delete(&models.SysMenus{}, "id = ?", id).Error
 
 	return
 }
@@ -350,7 +348,7 @@ func (self *SystemLogic) MenuDelete(ctx context.Context, id int64) (err error) {
 func (self *SystemLogic) RecordList(ctx context.Context, params *dto.RecordListReq) (resp *dto.RecordListResp, err error) {
 	resp = &dto.RecordListResp{}
 
-	query := gooze.Gorm().Model(&models.SysRecords{}).Order("id desc")
+	query := database.GetDB().Model(&models.SysRecords{}).Order("id desc")
 	if params.Username != "" {
 		query.Where("username like ?", params.Username+"%")
 	}
@@ -362,7 +360,7 @@ func (self *SystemLogic) RecordList(ctx context.Context, params *dto.RecordListR
 	}
 
 	var list []*models.SysRecords
-	if err = query.Scopes(gzdb.GormPaginate(params.Page, params.PageSize)).Find(&list).Error; err != nil {
+	if err = query.Scopes(utils.GormPaginate(params.Page, params.PageSize)).Find(&list).Error; err != nil {
 		return
 	}
 
@@ -380,7 +378,7 @@ func (self *SystemLogic) RecordList(ctx context.Context, params *dto.RecordListR
 
 // @Summary RecordDelete
 func (self *SystemLogic) RecordDelete(ctx context.Context, id int64) (err error) {
-	err = gooze.Gorm().Delete(&models.SysRecords{}, "id = ?", id).Error
+	err = database.GetDB().Delete(&models.SysRecords{}, "id = ?", id).Error
 
 	return
 }
@@ -388,12 +386,12 @@ func (self *SystemLogic) RecordDelete(ctx context.Context, id int64) (err error)
 // @Summary RoleAdd
 func (self *SystemLogic) RoleAdd(ctx context.Context, params *dto.UpsertRoleReq) (err error) {
 	var has int64
-	gooze.Gorm().Model(&models.SysRoles{}).Where("code = ?", params.Code).Count(&has)
+	database.GetDB().Model(&models.SysRoles{}).Where("code = ?", params.Code).Count(&has)
 	if has > 0 {
 		return fmt.Errorf("角色已存在！")
 	}
 
-	err = gooze.Gorm().Create(&models.SysRoles{
+	err = database.GetDB().Create(&models.SysRoles{
 		Name:   params.Name,
 		Code:   params.Code,
 		Status: params.Status,
@@ -408,7 +406,7 @@ func (self *SystemLogic) RoleAdd(ctx context.Context, params *dto.UpsertRoleReq)
 func (self *SystemLogic) RoleList(ctx context.Context, params *dto.RoleListReq) (resp *dto.RoleListResp, err error) {
 	resp = &dto.RoleListResp{}
 
-	query := gooze.Gorm().Model(&models.SysRoles{}).Order("id asc")
+	query := database.GetDB().Model(&models.SysRoles{}).Order("id asc")
 	if params.Name != "" {
 		query.Where("name like ?", params.Name+"%")
 	}
@@ -420,7 +418,7 @@ func (self *SystemLogic) RoleList(ctx context.Context, params *dto.RoleListReq) 
 	}
 
 	var list []*models.SysRoles
-	if err = query.Scopes(gzdb.GormPaginate(params.Page, params.PageSize)).Find(&list).Error; err != nil {
+	if err = query.Scopes(utils.GormPaginate(params.Page, params.PageSize)).Find(&list).Error; err != nil {
 		return
 	}
 
@@ -439,7 +437,7 @@ func (self *SystemLogic) RoleList(ctx context.Context, params *dto.RoleListReq) 
 // @Summary RoleInfo
 func (self *SystemLogic) RoleInfo(ctx context.Context, id int64) (resp *dto.RoleInfoResp, err error) {
 	role := &models.SysRoles{}
-	if err = gooze.Gorm().Preload("RoleAuths").Preload("RoleApis").First(&role, id).Error; err != nil {
+	if err = database.GetDB().Preload("RoleAuths").Preload("RoleApis").First(&role, id).Error; err != nil {
 		return
 	}
 
@@ -457,7 +455,7 @@ func (self *SystemLogic) RoleInfo(ctx context.Context, id int64) (resp *dto.Role
 
 // @Summary RoleUpdate
 func (self *SystemLogic) RoleUpdate(ctx context.Context, id int64, params *dto.UpsertRoleReq) (err error) {
-	err = gooze.Gorm().Model(&models.SysRoles{}).Where("id = ?", id).
+	err = database.GetDB().Model(&models.SysRoles{}).Where("id = ?", id).
 		Updates(map[string]interface{}{
 			"name":   params.Name,
 			"code":   params.Code,
@@ -471,8 +469,13 @@ func (self *SystemLogic) RoleUpdate(ctx context.Context, id int64, params *dto.U
 
 // @Summary RoleAssign
 func (self *SystemLogic) RoleAssign(ctx context.Context, id int64, params *dto.AssignRoleReq) (err error) {
-	var casbinInfos []gzpermission.CasbinInfo
-	err = gooze.Gorm().Transaction(func(tx *gorm.DB) error {
+	type CasbinInfo struct {
+		Path   string
+		Method string
+	}
+	var casbinInfos []CasbinInfo
+
+	err = database.GetDB().Transaction(func(tx *gorm.DB) error {
 		if err = self.deleteRoleAuth(ctx, tx, id); err != nil {
 			return err
 		}
@@ -505,7 +508,7 @@ func (self *SystemLogic) RoleAssign(ctx context.Context, id int64, params *dto.A
 			})
 
 			if api.Path != "" {
-				casbinInfos = append(casbinInfos, gzpermission.CasbinInfo{
+				casbinInfos = append(casbinInfos, CasbinInfo{
 					Path:   api.Path,
 					Method: api.Method,
 				})
@@ -516,7 +519,20 @@ func (self *SystemLogic) RoleAssign(ctx context.Context, id int64, params *dto.A
 	})
 
 	if err == nil {
-		err = gzpermission.UpsertCasbin(ctx, gooze.Casbin, id, casbinInfos)
+		// Update casbin policies
+		enforcer := middleware.GetEnforcer()
+		if enforcer != nil {
+			// Remove old policies for this role
+			enforcer.RemoveFilteredPolicy(0, fmt.Sprintf("%d", id))
+
+			// Add new policies
+			for _, info := range casbinInfos {
+				_, err = enforcer.AddPolicy(fmt.Sprintf("%d", id), info.Path, info.Method)
+				if err != nil {
+					log.Printf("Failed to add casbin policy: %v", err)
+				}
+			}
+		}
 	}
 
 	return
@@ -524,7 +540,7 @@ func (self *SystemLogic) RoleAssign(ctx context.Context, id int64, params *dto.A
 
 // @Summary RoleDelete
 func (self *SystemLogic) RoleDelete(ctx context.Context, id int64) (err error) {
-	err = gooze.Gorm().Transaction(func(tx *gorm.DB) error {
+	err = database.GetDB().Transaction(func(tx *gorm.DB) error {
 		if err = tx.Delete(&models.SysRoles{}, "id = ?", id).Error; err != nil {
 			return err
 		}
@@ -548,7 +564,7 @@ func (self *SystemLogic) deleteRoleAuth(ctx context.Context, tx *gorm.DB, id int
 // @Summary UserInfo
 func (self *SystemLogic) UserInfo(ctx context.Context) (resp *dto.UserInfoResp, err error) {
 	user := models.SysUsers{}
-	if err = gooze.Gorm().Where("id = ?", gzauth.GetTokenValue[int64](ctx, "id")).First(&user).Error; err != nil {
+	if err = database.GetDB().Where("id = ?", ctx.Value("userId")).First(&user).Error; err != nil {
 		return
 	}
 	resp = new(dto.UserInfoResp)
@@ -564,7 +580,7 @@ func (self *SystemLogic) UserInfo(ctx context.Context) (resp *dto.UserInfoResp, 
 
 	// 获取权限
 	var results []models.SysMenus
-	if err = gooze.Gorm().Model(&models.SysMenus{}).
+	if err = database.GetDB().Model(&models.SysMenus{}).
 		Select("perm").
 		Where("type = ?", "BUTTON").
 		Where("id IN ?", info.AuthId).
@@ -580,7 +596,7 @@ func (self *SystemLogic) UserInfo(ctx context.Context) (resp *dto.UserInfoResp, 
 
 func (self *SystemLogic) UserByName(username string) (user models.SysUsers, err error) {
 	user = models.SysUsers{}
-	err = gooze.Gorm().Where("username = ?", username).First(&user).Error
+	err = database.GetDB().Where("username = ?", username).First(&user).Error
 	// todo 头像
 	// user.Avatar = utils.TransformImageUrl(user.Avatar)
 
@@ -598,11 +614,11 @@ func (self *SystemLogic) UserAdd(ctx context.Context, params *dto.UpsertUserReq)
 		return fmt.Errorf("用户已存在！")
 	}
 
-	salt := gzutil.RandString(6)
-	err = gooze.Gorm().Create(&models.SysUsers{
+	salt := utils.RandString(6)
+	err = database.GetDB().Create(&models.SysUsers{
 		Username: username,
 		Salt:     salt,
-		Password: gzutil.MakePasswd(params.Password, salt),
+		Password: utils.MakePasswd(params.Password, salt),
 		Nickname: params.Nickname,
 		Avatar:   "/uploads/default/logo.png",
 		Status:   params.Status,
@@ -610,7 +626,7 @@ func (self *SystemLogic) UserAdd(ctx context.Context, params *dto.UpsertUserReq)
 		Email:    params.Email,
 		Remark:   params.Remark,
 		RoleId:   params.RoleId,
-		CreateBy: gzauth.GetTokenValue[int64](ctx, "id"),
+		CreateBy: ctx.Value("userId").(int64),
 	}).Error
 
 	return
@@ -620,7 +636,7 @@ func (self *SystemLogic) UserAdd(ctx context.Context, params *dto.UpsertUserReq)
 func (self *SystemLogic) UserList(ctx context.Context, params *dto.UserListReq) (resp *dto.UserListResp, err error) {
 	resp = &dto.UserListResp{}
 
-	query := gooze.Gorm().Model(&models.SysUsers{}).Order("id desc").Preload("SysRole")
+	query := database.GetDB().Model(&models.SysUsers{}).Order("id desc").Preload("SysRole")
 	if params.Username != "" {
 		query.Where("username like ?", params.Username+"%")
 	}
@@ -632,7 +648,7 @@ func (self *SystemLogic) UserList(ctx context.Context, params *dto.UserListReq) 
 	}
 
 	var list []*models.SysUsers
-	if err = query.Scopes(gzdb.GormPaginate(params.Page, params.PageSize)).Find(&list).Error; err != nil {
+	if err = query.Scopes(utils.GormPaginate(params.Page, params.PageSize)).Find(&list).Error; err != nil {
 		return
 	}
 
@@ -652,13 +668,13 @@ func (self *SystemLogic) UserList(ctx context.Context, params *dto.UserListReq) 
 // @Summary UserUpdate
 func (self *SystemLogic) UserUpdate(ctx context.Context, id int64, params *dto.UpsertUserReq) (err error) {
 	user := models.SysUsers{}
-	if err = gooze.Gorm().First(&user, id).Error; err != nil {
+	if err = database.GetDB().First(&user, id).Error; err != nil {
 		return err
 	}
 
 	if user.Username != params.Username {
 		var count int64
-		gooze.Gorm().Model(&models.SysUsers{}).Where("username = ?", params.Username).Count(&count)
+		database.GetDB().Model(&models.SysUsers{}).Where("username = ?", params.Username).Count(&count)
 		if count >= 1 {
 			return errors.New("用户已存在")
 		}
@@ -672,22 +688,22 @@ func (self *SystemLogic) UserUpdate(ctx context.Context, id int64, params *dto.U
 		"mobile":    params.Mobile,
 		"email":     params.Email,
 		"remark":    params.Remark,
-		"update_by": gzauth.GetTokenValue[int64](ctx, "id"),
+		"update_by": ctx.Value("userId").(int64),
 	}
 	if len(params.Password) > 0 {
-		newSalt := gzutil.RandString(6)
+		newSalt := utils.RandString(6)
 		uMap["salt"] = newSalt
-		uMap["password"] = gzutil.MakePasswd(params.Password, newSalt)
+		uMap["password"] = utils.MakePasswd(params.Password, newSalt)
 	}
 
-	err = gooze.Gorm().Model(&models.SysUsers{}).Where("id = ?", id).Updates(uMap).Error
+	err = database.GetDB().Model(&models.SysUsers{}).Where("id = ?", id).Updates(uMap).Error
 
 	return
 }
 
 // @Summary UserDelete
 func (self *SystemLogic) UserDelete(ctx context.Context, id int64) (err error) {
-	err = gooze.Gorm().Delete(&models.SysUsers{}, "id = ?", id).Error
+	err = database.GetDB().Delete(&models.SysUsers{}, "id = ?", id).Error
 
 	return
 }
