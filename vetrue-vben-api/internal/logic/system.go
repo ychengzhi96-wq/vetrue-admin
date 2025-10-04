@@ -4,20 +4,22 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"vetrue-vben-api/internal/database"
 	"vetrue-vben-api/internal/dto"
 	"vetrue-vben-api/models"
 	"vetrue-vben-api/pkg/middleware"
 	"vetrue-vben-api/pkg/utils"
-	"log"
 
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
 )
 
-var apiInfoMap = make(map[string]*models.SysApis)
-var recordUseApiInfoMap = make(map[string]*models.SysApis)
+var (
+	apiInfoMap          = make(map[string]*models.SysApis)
+	recordUseApiInfoMap = make(map[string]*models.SysApis)
+)
 
 type SystemLogic struct {
 }
@@ -124,6 +126,10 @@ func (self *SystemLogic) CacheApiInfo() {
 		log.Printf("[CacheApiInfo]获取API信息失败！ error: %v", err)
 		return
 	}
+
+	// 使用 Go 1.25 的 clear() 内置函数清空 map
+	clear(apiInfoMap)
+	clear(recordUseApiInfoMap)
 
 	for _, item := range list {
 		apiInfoMap[item.Path] = item

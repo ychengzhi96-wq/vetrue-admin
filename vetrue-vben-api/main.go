@@ -2,16 +2,16 @@ package main
 
 import (
 	"context"
-	"vetrue-vben-api/internal/config"
-	"vetrue-vben-api/internal/database"
-	"vetrue-vben-api/internal/router"
-	"vetrue-vben-api/pkg/middleware"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+	"vetrue-vben-api/internal/config"
+	"vetrue-vben-api/internal/database"
+	"vetrue-vben-api/internal/router"
+	"vetrue-vben-api/pkg/middleware"
 )
 
 func main() {
@@ -61,11 +61,13 @@ func main() {
 
 	log.Println("正在关闭服务器...")
 
+	// 使用 defer 简化资源清理
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Printf("服务器关闭异常: %v", err)
+		return
 	}
 
 	log.Println("服务器已关闭")

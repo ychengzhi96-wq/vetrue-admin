@@ -9,14 +9,14 @@ import (
 var AppConfig Config
 
 type Config struct {
-	App       App               `mapstructure:"app"`
-	Databases []DatabaseConfig  `mapstructure:"databases"`
-	Redis     RedisConfig       `mapstructure:"redis"`
-	Mongo     MongoConfig       `mapstructure:"mongo"`
-	Log       LogConfig         `mapstructure:"log"`
-	JWT       JWTConfig         `mapstructure:"jwt"`
-	Casbin    CasbinConfig      `mapstructure:"casbin"`
-	OSS       OSSConfig         `mapstructure:"oss"`
+	App       App              `mapstructure:"app"`
+	Databases []DatabaseConfig `mapstructure:"databases"`
+	Redis     RedisConfig      `mapstructure:"redis"`
+	Mongo     MongoConfig      `mapstructure:"mongo"`
+	Log       LogConfig        `mapstructure:"log"`
+	JWT       JWTConfig        `mapstructure:"jwt"`
+	Casbin    CasbinConfig     `mapstructure:"casbin"`
+	OSS       OSSConfig        `mapstructure:"oss"`
 }
 
 type App struct {

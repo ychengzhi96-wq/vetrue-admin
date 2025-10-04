@@ -3,12 +3,12 @@ package logic
 import (
 	"context"
 	"errors"
+	"log"
 	"vetrue-vben-api/internal/database"
 	"vetrue-vben-api/internal/dto"
 	"vetrue-vben-api/models"
 	"vetrue-vben-api/pkg/jwt"
 	"vetrue-vben-api/pkg/utils"
-	"log"
 )
 
 type AuthLogic struct {
@@ -42,16 +42,15 @@ func (self *AuthLogic) SystemAuthLogin(ctx context.Context, params *dto.LoginReq
 		return nil, errors.New("生成 token 失败")
 	}
 
-	resp = &dto.LoginResp{
+	// 使用复合字面量简化结构体初始化
+	return &dto.LoginResp{
 		AccessToken: token,
 		Id:          user.Id,
 		Password:    "",
 		RealName:    user.Username,
 		Roles:       []string{""},
 		Username:    user.Username,
-	}
-
-	return
+	}, nil
 }
 
 // @Summary SystemAuthLogout

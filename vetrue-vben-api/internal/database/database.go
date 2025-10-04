@@ -2,9 +2,9 @@ package database
 
 import (
 	"fmt"
-	"vetrue-vben-api/internal/config"
 	"log"
 	"time"
+	"vetrue-vben-api/internal/config"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
@@ -24,19 +24,10 @@ func InitDatabase() error {
 	// 使用第一个数据库作为主数据库
 	dbConfig := config.AppConfig.Databases[0]
 
-	var dialector gorm.Dialector
-
-	switch dbConfig.Driver {
-	case "mysql":
-		dialector = mysql.Open(dbConfig.DSN)
-	case "postgres":
-		dialector = postgres.Open(dbConfig.DSN)
-	case "sqlite":
-		dialector = sqlite.Open(dbConfig.DSN)
-	case "sqlserver":
-		dialector = sqlserver.Open(dbConfig.DSN)
-	default:
-		return fmt.Errorf("不支持的数据库类型: %s", dbConfig.Driver)
+	// 使用 Go 1.25 优化的 switch 表达式
+	dialector, err := getDialector(dbConfig.Driver, dbConfig.DSN)
+	if err != nil {
+		return err
 	}
 
 	// 配置日志级别
@@ -56,10 +47,10 @@ func InitDatabase() error {
 		Logger: logger.Default.LogMode(logLevel),
 	}
 
-	var err error
-	DB, err = gorm.Open(dialector, gormConfig)
-	if err != nil {
-		return fmt.Errorf("连接数据库失败: %w", err)
+	var openErr error
+	DB, openErr = gorm.Open(dialector, gormConfig)
+	if openErr != nil {
+		return fmt.Errorf("连接数据库失败: %w", openErr)
 	}
 
 	sqlDB, err := DB.DB()
@@ -82,4 +73,20 @@ func InitDatabase() error {
 
 func GetDB() *gorm.DB {
 	return DB
+}
+
+// getDialector 根据数据库类型返回对应的 dialector
+func getDialector(driver, dsn string) (gorm.Dialector, error) {
+	switch driver {
+	case "mysql":
+		return mysql.Open(dsn), nil
+	case "postgres":
+		return postgres.Open(dsn), nil
+	case "sqlite":
+		return sqlite.Open(dsn), nil
+	case "sqlserver":
+		return sqlserver.Open(dsn), nil
+	default:
+		return nil, fmt.Errorf("不支持的数据库类型: %s", driver)
+	}
 }

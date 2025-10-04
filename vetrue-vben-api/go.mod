@@ -1,6 +1,6 @@
 module vetrue-vben-api
 
-go 1.24.1
+go 1.25.1
 
 require (
 	github.com/casbin/casbin/v2 v2.109.0

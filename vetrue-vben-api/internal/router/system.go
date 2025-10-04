@@ -1,8 +1,9 @@
 package router
 
 import (
-	"github.com/gin-gonic/gin"
 	"vetrue-vben-api/internal/handler"
+
+	"github.com/gin-gonic/gin"
 )
 
 func InitApiAuthRouter(routerGroup *gin.RouterGroup) {
