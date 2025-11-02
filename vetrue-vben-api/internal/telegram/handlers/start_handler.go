@@ -50,16 +50,8 @@ func (h *StartHandler) BuildMessage(update tgbotapi.Update) *core.SendRequest {
 		messageID = update.CallbackQuery.Message.MessageID
 	}
 
-	log.Printf("StartHandler.buildMessage - ChatId: %d", chatID)
-
 	caption := `欢迎光临 人人娱乐综合游戏平台
 🔥 活动：注册送体验金，支持 USDT、人民币等多币种兑换
-
-✅ 免注册，免实名
-✅ 支持USDT、人民币等便捷兑换
-✅ 提供USDT、汇旺、ABA、借易等充值方式
-✅ 5000万现金储备，100%出款
-
 PG、PP、BB、电子、捕鱼、棋牌游戏、体育、真人，应有尽有`
 
 	keyboard := h.buildWelcomeKeyboard()
